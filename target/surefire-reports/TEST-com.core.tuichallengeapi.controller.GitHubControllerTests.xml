@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="com.core.tuichallengeapi.TuiChallengeApiApplicationTests" time="0.443" tests="1" errors="0" skipped="0" failures="0">
+<testsuite xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="https://maven.apache.org/surefire/maven-surefire-plugin/xsd/surefire-test-report-3.0.xsd" version="3.0" name="com.core.tuichallengeapi.controller.GitHubControllerTests" time="1.331" tests="3" errors="3" skipped="0" failures="0">
   <properties>
     <property name="java.specification.version" value="21"/>
     <property name="sun.cpu.isalist" value="amd64"/>
@@ -9,7 +9,6 @@
     <property name="sun.arch.data.model" value="64"/>
     <property name="user.variant" value=""/>
     <property name="java.vendor.url" value="https://java.oracle.com/"/>
-    <property name="catalina.useNaming" value="false"/>
     <property name="user.timezone" value="Europe/Lisbon"/>
     <property name="os.name" value="Windows 11"/>
     <property name="java.vm.specification.version" value="21"/>
@@ -31,8 +30,6 @@
     <property name="line.separator" value="&#10;"/>
     <property name="java.vm.specification.vendor" value="Oracle Corporation"/>
     <property name="java.specification.name" value="Java Platform API Specification"/>
-    <property name="FILE_LOG_CHARSET" value="UTF-8"/>
-    <property name="java.awt.headless" value="true"/>
     <property name="surefire.real.class.path" value="C:\Users\andre\AppData\Local\Temp\surefire2910103443256574544\surefirebooter-20240108211659864_3.jar"/>
     <property name="user.script" value=""/>
     <property name="sun.management.compiler" value="HotSpot 64-Bit Tiered Compilers"/>
@@ -48,15 +45,11 @@
     <property name="java.vendor.url.bug" value="https://bugreport.java.com/bugreport/"/>
     <property name="java.io.tmpdir" value="C:\Users\andre\AppData\Local\Temp\"/>
     <property name="idea.version" value="2021.2.2"/>
-    <property name="catalina.home" value="C:\Users\andre\AppData\Local\Temp\tomcat.0.7577928559096127015"/>
     <property name="java.version" value="21.0.1"/>
     <property name="user.dir" value="C:\Users\andre\Desktop\tui-challenge-api"/>
     <property name="os.arch" value="amd64"/>
     <property name="java.vm.specification.name" value="Java Virtual Machine Specification"/>
-    <property name="PID" value="11376"/>
     <property name="sun.os.patch.level" value=""/>
-    <property name="CONSOLE_LOG_CHARSET" value="UTF-8"/>
-    <property name="catalina.base" value="C:\Users\andre\AppData\Local\Temp\tomcat.0.7577928559096127015"/>
     <property name="native.encoding" value="Cp1252"/>
     <property name="java.library.path" value="C:\Program Files\Java\jdk-21\bin;C:\WINDOWS\Sun\Java\bin;C:\WINDOWS\system32;C:\WINDOWS;C:\Users\andre\AppData\Local\Programs\Python\Python311\Scripts\;C:\Users\andre\AppData\Local\Programs\Python\Python311;C:\Program Files\Common Files\Oracle\Java\javapath;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Windows\System32\OpenSSH\;C:\Program Files\NVIDIA Corporation\NVIDIA NvDLISR;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;C:\Program Files\Java\jdk-17\bin;C:\Program Files\apache-maven-3.8.3\apache-maven-3.8.3\bin;C:\Program Files\nodejs\;C:\ProgramData\chocolatey\bin;C:\Program Files\Docker\Docker\resources\bin;C:\ProgramData\DockerDesktop\version-bin;C:\Program Files\Cloudflare\Cloudflare WARP\;C:\Program Files\Portugal Identity Card\;C:\Users\andre\AppData\Local\Microsoft\WindowsApps;C:\Program Files\JetBrains\IntelliJ IDEA 2021.2.2\bin;C:\Users\andre\AppData\Roaming\npm;C:\Users\andre\AppData\Local\Gi;C:\Users\andre\AppData\Local\Microsoft\WindowsApps;C:\Program Files\JetBrains\IntelliJ IDEA 2021.2.2\bin;;C:\Users\andre\AppData\Roaming\npm;C:\Users\andre\AppData\Local\GitHubDesktop\bin;C:\Users\andre\AppData\Local\Programs\Microsoft VS Code\bin;C:\Program Files\Java\jdk-1.8\bin;;."/>
     <property name="java.vm.info" value="mixed mode, sharing"/>
@@ -66,21 +59,33 @@
     <property name="sun.io.unicode.encoding" value="UnicodeLittle"/>
     <property name="java.class.version" value="65.0"/>
   </properties>
-  <testcase name="contextLoads" classname="com.core.tuichallengeapi.TuiChallengeApiApplicationTests" time="0.005">
-    <system-out><![CDATA[2024-01-08T21:17:05.645Z  INFO 11376 --- [           main] t.c.s.AnnotationConfigContextLoaderUtils : Could not detect default configuration classes for test class [com.core.tuichallengeapi.TuiChallengeApiApplicationTests]: TuiChallengeApiApplicationTests does not declare any static, non-private, non-final, nested classes annotated with @Configuration.
-2024-01-08T21:17:05.656Z  INFO 11376 --- [           main] .b.t.c.SpringBootTestContextBootstrapper : Found @SpringBootConfiguration com.core.tuichallengeapi.TuiChallengeApiApplication for test class com.core.tuichallengeapi.TuiChallengeApiApplicationTests
-
-  .   ____          _            __ _ _
- /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
-( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
- \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
-  '  |____| .__|_| |_|_| |_\__, | / / / /
- =========|_|==============|___/=/_/_/_/
- :: Spring Boot ::                (v3.2.1)
-
-2024-01-08T21:17:05.697Z  INFO 11376 --- [           main] c.c.t.TuiChallengeApiApplicationTests    : Starting TuiChallengeApiApplicationTests using Java 21.0.1 with PID 11376 (started by andre in C:\Users\andre\Desktop\tui-challenge-api)
-2024-01-08T21:17:05.697Z  INFO 11376 --- [           main] c.c.t.TuiChallengeApiApplicationTests    : No active profile set, falling back to 1 default profile: "default"
-2024-01-08T21:17:06.068Z  INFO 11376 --- [           main] c.c.t.TuiChallengeApiApplicationTests    : Started TuiChallengeApiApplicationTests in 0.403 seconds (process running for 6.096)
-]]></system-out>
+  <testcase name="whenUserNotFound_thenStatus404" classname="com.core.tuichallengeapi.controller.GitHubControllerTests" time="1.267">
+    <error message="Cannot invoke &quot;org.springframework.test.web.servlet.MockMvc.perform(org.springframework.test.web.servlet.RequestBuilder)&quot; because &quot;this.mockMvc&quot; is null" type="java.lang.NullPointerException"><![CDATA[java.lang.NullPointerException: Cannot invoke "org.springframework.test.web.servlet.MockMvc.perform(org.springframework.test.web.servlet.RequestBuilder)" because "this.mockMvc" is null
+	at com.core.tuichallengeapi.controller.GitHubControllerTests.whenUserNotFound_thenStatus404(GitHubControllerTests.java:45)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></error>
+    <system-err><![CDATA[WARNING: A Java agent has been loaded dynamically (C:\Users\andre\.m2\repository\net\bytebuddy\byte-buddy-agent\1.14.10\byte-buddy-agent-1.14.10.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+]]></system-err>
+  </testcase>
+  <testcase name="whenAcceptHeaderIsXml_thenStatus406" classname="com.core.tuichallengeapi.controller.GitHubControllerTests" time="0.005">
+    <error message="Cannot invoke &quot;org.springframework.test.web.servlet.MockMvc.perform(org.springframework.test.web.servlet.RequestBuilder)&quot; because &quot;this.mockMvc&quot; is null" type="java.lang.NullPointerException"><![CDATA[java.lang.NullPointerException: Cannot invoke "org.springframework.test.web.servlet.MockMvc.perform(org.springframework.test.web.servlet.RequestBuilder)" because "this.mockMvc" is null
+	at com.core.tuichallengeapi.controller.GitHubControllerTests.whenAcceptHeaderIsXml_thenStatus406(GitHubControllerTests.java:54)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></error>
+  </testcase>
+  <testcase name="whenUserExists_thenStatus200" classname="com.core.tuichallengeapi.controller.GitHubControllerTests" time="0.004">
+    <error message="Cannot invoke &quot;org.springframework.test.web.servlet.MockMvc.perform(org.springframework.test.web.servlet.RequestBuilder)&quot; because &quot;this.mockMvc&quot; is null" type="java.lang.NullPointerException"><![CDATA[java.lang.NullPointerException: Cannot invoke "org.springframework.test.web.servlet.MockMvc.perform(org.springframework.test.web.servlet.RequestBuilder)" because "this.mockMvc" is null
+	at com.core.tuichallengeapi.controller.GitHubControllerTests.whenUserExists_thenStatus200(GitHubControllerTests.java:35)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+]]></error>
   </testcase>
 </testsuite>
