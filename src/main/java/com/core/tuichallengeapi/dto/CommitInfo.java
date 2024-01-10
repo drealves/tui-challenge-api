@@ -3,15 +3,15 @@ package com.core.tuichallengeapi.dto;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class BranchInfo {
-    private String name;
+public class CommitInfo {
+    private String sha;
 
     // Getters and setters
-    public String getName() {
-        return name;
+    public String getSha() {
+        return sha;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setSha(String sha) {
+        this.sha = sha;
     }
 }

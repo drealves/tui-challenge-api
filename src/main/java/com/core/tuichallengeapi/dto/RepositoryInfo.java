@@ -1,50 +1,28 @@
 package com.core.tuichallengeapi.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import java.util.List;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class RepositoryInfo {
     private String name;
-    private String ownerLogin;
-    //private boolean fork; // Indicates if the repository is a fork
-    private List<BranchInfo> branches; // Assuming you have a BranchInfo class
+    private Owner owner;
 
-    // No-argument constructor
-    public RepositoryInfo() {
-    }
-
-    // All-argument constructor
-    public RepositoryInfo(String name, String ownerLogin, List<BranchInfo> branches) {
-        this.name = name;
-        this.ownerLogin = ownerLogin;
-        //this.fork = fork;
-        this.branches = branches;
-    }
-
-    // Getters
+    // Getters and setters
     public String getName() {
         return name;
     }
 
-    public String getOwnerLogin() {
-        return ownerLogin;
-    }
-
-    public List<BranchInfo> getBranches() {
-        return branches;
-    }
-
-    // Setters
     public void setName(String name) {
         this.name = name;
     }
 
-    public void setOwnerLogin(String ownerLogin) {
-        this.ownerLogin = ownerLogin;
+    public Owner getOwner() {
+        return owner;
     }
 
-    public void setBranches(List<BranchInfo> branches) {
-        this.branches = branches;
+    public void setOwner(Owner owner) {
+        this.owner = owner;
     }
-
-    // Other necessary methods
 }

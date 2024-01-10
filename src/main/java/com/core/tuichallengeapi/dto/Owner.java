@@ -3,15 +3,15 @@ package com.core.tuichallengeapi.dto;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class BranchInfo {
-    private String name;
+public class Owner {
+    private String login;
 
     // Getters and setters
-    public String getName() {
-        return name;
+    public String getLogin() {
+        return login;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setLogin(String login) {
+        this.login = login;
     }
 }

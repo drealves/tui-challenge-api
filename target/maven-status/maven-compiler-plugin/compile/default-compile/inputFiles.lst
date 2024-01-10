@@ -1,9 +1,11 @@
 C:\Users\andre\Desktop\tui-challenge-api\src\main\java\com\core\tuichallengeapi\exception\UserNotFoundException.java
 C:\Users\andre\Desktop\tui-challenge-api\src\main\java\com\core\tuichallengeapi\controller\GitHubController.java
-C:\Users\andre\Desktop\tui-challenge-api\src\main\java\com\core\tuichallengeapi\exception\GitHubApiRateLimitExceededException.java
-C:\Users\andre\Desktop\tui-challenge-api\src\main\java\com\core\tuichallengeapi\exception\GitHubApiException.java
+C:\Users\andre\Desktop\tui-challenge-api\src\main\java\com\core\tuichallengeapi\config\GitHubApiPropertiesConfig.java
 C:\Users\andre\Desktop\tui-challenge-api\src\main\java\com\core\tuichallengeapi\dto\RepositoryInfo.java
 C:\Users\andre\Desktop\tui-challenge-api\src\main\java\com\core\tuichallengeapi\service\GitHubService.java
 C:\Users\andre\Desktop\tui-challenge-api\src\main\java\com\core\tuichallengeapi\TuiChallengeApiApplication.java
+C:\Users\andre\Desktop\tui-challenge-api\src\main\java\com\core\tuichallengeapi\exception\CustomExceptionHandler.java
 C:\Users\andre\Desktop\tui-challenge-api\src\main\java\com\core\tuichallengeapi\dto\BranchInfo.java
 C:\Users\andre\Desktop\tui-challenge-api\src\main\java\com\core\tuichallengeapi\config\WebClientConfig.java
+C:\Users\andre\Desktop\tui-challenge-api\src\main\java\com\core\tuichallengeapi\dto\ResponseErrorDto.java
+C:\Users\andre\Desktop\tui-challenge-api\src\main\java\com\core\tuichallengeapi\exception\HttpAcceptException.java

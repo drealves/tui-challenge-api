@@ -1,44 +1,88 @@
 package com.core.tuichallengeapi.service;
 
+import com.core.tuichallengeapi.config.GitHubApiPropertiesConfig;
+import com.core.tuichallengeapi.dto.BranchInfo;
+import com.core.tuichallengeapi.dto.CommitInfo;
 import com.core.tuichallengeapi.dto.RepositoryInfo;
-import com.core.tuichallengeapi.exception.GitHubApiException;
-import com.core.tuichallengeapi.exception.GitHubApiRateLimitExceededException;
 import com.core.tuichallengeapi.exception.UserNotFoundException;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class GitHubService {
 
     private final WebClient webClient;
 
-    private final String githubToken;
-
-
-    public GitHubService(WebClient.Builder webClientBuilder, @Value("${github.token}") String githubToken) {
-        this.webClient = webClientBuilder.baseUrl("https://api.github.com").build();
-        this.githubToken = githubToken;
+    @Autowired
+    public GitHubService(WebClient.Builder webClientBuilder, GitHubApiPropertiesConfig gitHubApiPropertiesConfig) {
+        this.webClient = webClientBuilder.baseUrl(gitHubApiPropertiesConfig.getBaseUrl())
+                .defaultHeader(HttpHeaders.AUTHORIZATION, gitHubApiPropertiesConfig.getToken()).build();
     }
 
-    public Mono<List<RepositoryInfo>> getUserRepos(String username) {
-        return webClient.get()
-                .uri("/users/{username}/repos", username)
-                .header("Authorization", "Bearer " + githubToken)
+    public Mono<List<Map<String, Object>>> getRepositoryInfo(String username, int page, int size) {
+        Flux<RepositoryInfo> repositoriesFlux = webClient.get()
+                .uri(uriBuilder -> uriBuilder
+                        .path("/users/{username}/repos")
+                        .queryParam("page", page)
+                        .queryParam("per_page", size)
+                        .build(username))
                 .retrieve()
-                .onStatus(status -> status.is4xxClientError(), response -> {
-                    if (response.statusCode() == HttpStatus.NOT_FOUND) {
-                        return Mono.error(new UserNotFoundException("User not found"));
-                    }
-                    return Mono.error(new GitHubApiException("Client error occurred"));
+                .onStatus(httpStatus -> httpStatus.equals(HttpStatus.NOT_FOUND),
+                        response -> Mono.error(new UserNotFoundException("User not found")))
+                .bodyToFlux(RepositoryInfo.class);
+
+        return repositoriesFlux.flatMap(repositoryInfo -> {
+                    String owner = repositoryInfo.getOwner().getLogin();
+                    String repositoryName = repositoryInfo.getName();
+
+                    Flux<BranchInfo> branchInfoFlux = webClient.get()
+                            .uri("/repos/{owner}/{repo}/branches", owner, repositoryName)
+                            .retrieve()
+                            .onStatus(httpStatus -> httpStatus.equals(HttpStatus.NOT_FOUND),
+                                    response -> Mono.error(new UserNotFoundException("Repository not found")))
+                            .bodyToFlux(BranchInfo.class);
+
+                    return branchInfoFlux.flatMap(branchInfo -> getLastCommitSha(owner, repositoryName, branchInfo.getName())
+                                    .map(lastCommitSha -> {
+                                        Map<String, String> branchMap = new HashMap<>();
+                                        branchMap.put("branchName", branchInfo.getName());
+                                        branchMap.put("lastCommitSha", lastCommitSha);
+                                        return branchMap;
+                                    }))
+                            .collectList()
+                            .map(branches -> {
+                                Map<String, Object> repositoryDetails = new HashMap<>();
+                                repositoryDetails.put("repositoryName", repositoryInfo.getName());
+                                repositoryDetails.put("ownerLogin", repositoryInfo.getOwner().getLogin());
+                                repositoryDetails.put("branches", branches);
+                                return repositoryDetails;
+                            });
                 })
-                .onStatus(status -> status.is5xxServerError(), response -> Mono.error(new GitHubApiException("Server error occurred")))
-                .onStatus(status -> status.equals(HttpStatus.TOO_MANY_REQUESTS), response -> Mono.error(new GitHubApiRateLimitExceededException("Rate limit exceeded")))
-                .bodyToFlux(RepositoryInfo.class)
-                .collectList();
+                .collectList(); // Collecting all repository details into a final list
     }
+
+    private Mono<String> getLastCommitSha(String owner, String repositoryName, String branch) {
+        String commitsUrl = String.format("/repos/%s/%s/commits/%s", owner, repositoryName, branch);
+
+        return webClient.get()
+                .uri(commitsUrl)
+                .retrieve()
+                .onStatus(httpStatus -> httpStatus.equals(HttpStatus.NOT_FOUND),
+                        response -> Mono.error(new UserNotFoundException("Commit not found")))
+                .bodyToMono(CommitInfo.class)
+                .map(CommitInfo::getSha);
+    }
+
+
 }
+
+

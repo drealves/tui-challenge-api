@@ -1,3 +1,5 @@
-com\core\tuichallengeapi\controller\GitHubControllerTests.class
-com\core\tuichallengeapi\service\integration\GitHubApiIntegrationTest.class
+com\core\tuichallengeapi\integration\GitHubApiIntegrationTest.class
+com\core\tuichallengeapi\service\GitHubServiceTest.class
+com\core\tuichallengeapi\integration\GitHubApiPingTest.class
+com\core\tuichallengeapi\controller\GitHubControllerTest.class
 com\core\tuichallengeapi\TuiChallengeApiApplicationTests.class
