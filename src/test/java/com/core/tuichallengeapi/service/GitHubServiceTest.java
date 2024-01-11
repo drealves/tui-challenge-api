@@ -26,6 +26,7 @@ import java.util.Map;
 import java.util.function.Function;
 
 import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -58,58 +59,43 @@ public class GitHubServiceTest {
         when(webClientBuilder.defaultHeader(eq(HttpHeaders.AUTHORIZATION), anyString())).thenReturn(webClientBuilder);
         when(webClientBuilder.build()).thenReturn(webClient);
 
-        // Mocking the WebClient chain
-        when(webClient.get()).thenReturn(requestHeadersUriSpec);
-        when(requestHeadersUriSpec.uri(Mockito.<Function<UriBuilder, URI>>any())).thenReturn(requestHeadersSpec);
-        when(requestHeadersSpec.retrieve()).thenReturn(responseSpec);
-        // Correctly stubbing onStatus on the ResponseSpec
-        when(responseSpec.onStatus(any(), any())).thenReturn(responseSpec);
+        gitHubService = new GitHubService(webClientBuilder, gitHubApiPropertiesConfig); // Assuming the constructor accepts a WebClient
 
+        // Setup for WebClient
+        Mockito.when(webClient.get()).thenReturn(requestHeadersUriSpec);
+        Mockito.when(requestHeadersUriSpec.uri(any(Function.class))).thenReturn(requestHeadersSpec);
+        Mockito.when(requestHeadersSpec.retrieve()).thenReturn(responseSpec);
 
-        gitHubService = new GitHubService(webClientBuilder, gitHubApiPropertiesConfig);
 
     }
 
     @Test
-    public void getRepositoryInfoShouldReturnRepositoryDetails() {
-        // Creating a mock Owner object
-        Owner mockOwner = new Owner();
-        mockOwner.setLogin("username");
+    public void getBranchesForRepositoryShouldReturnBranches() {
+        // Mocking WebClient behavior
+        // Assuming the setup for WebClient mocks has already been done as in previous tests
+        Mockito.when(gitHubService.getLastCommitSha(anyString(), anyString(), anyString()))
+                .thenReturn(Mono.just("mockCommitSha"));
 
-        RepositoryInfo mockRepo = new RepositoryInfo();
-        mockRepo.setName("testRepo");
-        mockRepo.setOwner(mockOwner);
-        // Mock other necessary properties of mockRepo
+        // Setting up mocked data for BranchInfo
+        BranchInfo branchInfo = new BranchInfo();
+        branchInfo.setName("main"); // Example branch name
 
-        when(responseSpec.bodyToFlux(RepositoryInfo.class)).thenReturn(Flux.just(mockRepo));
+        // Mocking getLastCommitSha to return a specific commit SHA for the branch
+        String mockLastCommitSha = "abc123";
+        Mockito.when(gitHubService.getLastCommitSha("owner", "repositoryName", "main"))
+                .thenReturn(Mono.just(mockLastCommitSha));
 
-        // Mocking the WebClient behavior for fetching branch information
-        // This should be adapted based on how your application fetches branch information
-        // For example, if it makes another WebClient call, you should mock that call as well
+        // Setting up the responseSpec to return the mocked BranchInfo
+        given(responseSpec.bodyToFlux(BranchInfo.class)).willReturn(Flux.just(branchInfo));
 
-        // Assuming branch information is fetched in a similar manner:
-        BranchInfo mockBranch = new BranchInfo();
-        mockBranch.setName("main");
-        // Mock other necessary properties of mockBranch
-
-        when(responseSpec.bodyToFlux(BranchInfo.class)).thenReturn(Flux.just(mockBranch));
-
-        // Mock the getLastCommitSha method if needed
-        // ...
-
-        // Execute the test
-        Mono<List<Map<String, Object>>> result = gitHubService.getRepositoryInfo("username", 1, 5);
-
-        StepVerifier.create(result)
-                .expectNextMatches(repositories -> {
-                    // Verify the size of the list and contents of the map
-                    return repositories.size() == 1 &&
-                            "testRepo".equals(repositories.get(0).get("repositoryName")) &&
-                            // Add more checks as needed, like verifying branches and commit SHAs
-                            true;
-                })
+        // Executing the test
+        StepVerifier.create(gitHubService.getBranchesForRepository("owner", "repositoryName"))
+                .expectNextMatches(branchMap ->
+                                "main".equals(branchMap.get("branchName")) &&
+                                        mockLastCommitSha.equals(branchMap.get("lastCommitSha"))
+                        // Additional validations can be added here
+                )
                 .verifyComplete();
     }
-
 
 }
