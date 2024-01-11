@@ -6,6 +6,13 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 public class Owner {
     private String login;
 
+    public Owner() {
+        // Default constructor
+    }
+
+    public Owner(String login) {
+        this.login = login;
+    }
     // Getters and setters
     public String getLogin() {
         return login;

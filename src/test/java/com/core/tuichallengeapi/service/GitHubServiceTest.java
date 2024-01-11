@@ -1,101 +1,103 @@
 package com.core.tuichallengeapi.service;
 
-import com.core.tuichallengeapi.config.GitHubApiPropertiesConfig;
+import com.core.tuichallengeapi.client.GitHubClient;
 import com.core.tuichallengeapi.dto.BranchInfo;
-import com.core.tuichallengeapi.dto.CommitInfo;
 import com.core.tuichallengeapi.dto.Owner;
 import com.core.tuichallengeapi.dto.RepositoryInfo;
 import com.core.tuichallengeapi.exception.UserNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.util.UriBuilder;
+import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
-import java.net.URI;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.BDDMockito.given;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
-@ExtendWith(MockitoExtension.class)
 public class GitHubServiceTest {
 
     @Mock
-    private WebClient.Builder webClientBuilder;
-    @Mock
-    private WebClient webClient;
-    @Mock
-    private WebClient.RequestHeadersUriSpec requestHeadersUriSpec;
-    @Mock
-    private WebClient.RequestHeadersSpec requestHeadersSpec;
-    @Mock
-    private WebClient.ResponseSpec responseSpec;
-    @Mock
-    private GitHubApiPropertiesConfig gitHubApiPropertiesConfig;
+    private GitHubClient gitHubClient;
 
+    @InjectMocks
     private GitHubService gitHubService;
 
     @BeforeEach
-    public void setup() {
-
-        when(gitHubApiPropertiesConfig.getBaseUrl()).thenReturn("https://api.github.com");
-        when(gitHubApiPropertiesConfig.getToken()).thenReturn("token");
-
-        // Mocking WebClient.Builder to return the mock WebClient
-        // Correcting the matchers here
-        when(webClientBuilder.baseUrl(anyString())).thenReturn(webClientBuilder);
-        when(webClientBuilder.defaultHeader(eq(HttpHeaders.AUTHORIZATION), anyString())).thenReturn(webClientBuilder);
-        when(webClientBuilder.build()).thenReturn(webClient);
-
-        gitHubService = new GitHubService(webClientBuilder, gitHubApiPropertiesConfig); // Assuming the constructor accepts a WebClient
-
-        // Setup for WebClient
-        Mockito.when(webClient.get()).thenReturn(requestHeadersUriSpec);
-        Mockito.when(requestHeadersUriSpec.uri(any(Function.class))).thenReturn(requestHeadersSpec);
-        Mockito.when(requestHeadersSpec.retrieve()).thenReturn(responseSpec);
-
-
+    public void setUp() {
+        MockitoAnnotations.openMocks(this);
     }
 
     @Test
-    public void getBranchesForRepositoryShouldReturnBranches() {
-        // Mocking WebClient behavior
-        // Assuming the setup for WebClient mocks has already been done as in previous tests
-        Mockito.when(gitHubService.getLastCommitSha(anyString(), anyString(), anyString()))
-                .thenReturn(Mono.just("mockCommitSha"));
+    public void testGetBranchesForRepository() {
+        // Given
+        BranchInfo branchInfo = new BranchInfo("main"); // Populate with appropriate data
 
-        // Setting up mocked data for BranchInfo
-        BranchInfo branchInfo = new BranchInfo();
-        branchInfo.setName("main"); // Example branch name
+        when(gitHubClient.getBranchesForRepository(anyString(), anyString()))
+                .thenReturn(Flux.just(branchInfo));
 
-        // Mocking getLastCommitSha to return a specific commit SHA for the branch
-        String mockLastCommitSha = "abc123";
-        Mockito.when(gitHubService.getLastCommitSha("owner", "repositoryName", "main"))
-                .thenReturn(Mono.just(mockLastCommitSha));
+        when(gitHubClient.getLastCommitSha(anyString(), anyString(), anyString()))
+                .thenReturn(Mono.just("commitSha123"));
 
-        // Setting up the responseSpec to return the mocked BranchInfo
-        given(responseSpec.bodyToFlux(BranchInfo.class)).willReturn(Flux.just(branchInfo));
-
-        // Executing the test
-        StepVerifier.create(gitHubService.getBranchesForRepository("owner", "repositoryName"))
-                .expectNextMatches(branchMap ->
-                                "main".equals(branchMap.get("branchName")) &&
-                                        mockLastCommitSha.equals(branchMap.get("lastCommitSha"))
-                        // Additional validations can be added here
-                )
+        // When & Then
+        StepVerifier.create(gitHubService.getBranchesForRepository("owner", "repo"))
+                .expectNextMatches(map -> map.get("branchName").equals("main") && map.get("lastCommitSha").equals("commitSha123"))
                 .verifyComplete();
     }
+
+    @Test
+    public void testGetRepositoryInfo() {
+        // Given
+        RepositoryInfo repositoryInfo = new RepositoryInfo("repoName", new Owner("ownerLogin")); // Populate with appropriate data
+        when(gitHubClient.getRepositories(anyString(), anyInt(), anyInt()))
+                .thenReturn(Flux.just(repositoryInfo));
+
+        BranchInfo branchInfo = new BranchInfo("main"); // Populate with appropriate data
+        when(gitHubClient.getBranchesForRepository(anyString(), anyString()))
+                .thenReturn(Flux.just(branchInfo));
+
+        when(gitHubClient.getLastCommitSha(anyString(), anyString(), anyString()))
+                .thenReturn(Mono.just("commitSha123"));
+
+        // When & Then
+        StepVerifier.create(gitHubService.getRepositoryInfo("username", 1, 10))
+                .expectNextMatches(list -> {
+                    Map<String, Object> repoMap = list.get(0);
+                    return repoMap.get("repositoryName").equals("repoName") &&
+                            repoMap.get("ownerLogin").equals("ownerLogin") &&
+                            ((List<?>) repoMap.get("branches")).size() == 1;
+                })
+                .verifyComplete();
+    }
+
+    @Test
+    public void testGetBranchesForRepository_EmptyResult() {
+        // When the client returns an empty Flux
+        when(gitHubClient.getBranchesForRepository(anyString(), anyString()))
+                .thenReturn(Flux.empty());
+
+        StepVerifier.create(gitHubService.getBranchesForRepository("owner", "repo"))
+                .verifyComplete(); // Verifies that the flux completes without any items
+    }
+
+    @Test
+    public void testGetRepositoryInfo_ErrorHandling() {
+        // When an error occurs while fetching repositories
+        when(gitHubClient.getRepositories(anyString(), anyInt(), anyInt()))
+                .thenReturn(Flux.error(new UserNotFoundException("User not found")));
+
+        StepVerifier.create(gitHubService.getRepositoryInfo("username", 1, 10))
+                .expectErrorMatches(throwable -> throwable instanceof UserNotFoundException)
+                .verify();
+    }
+
 
 }

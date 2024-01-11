@@ -24,4 +24,11 @@ public class CustomExceptionHandler {
                 .body(new ResponseErrorDto(HttpStatus.NOT_FOUND.value(), message.getMessage()));
     }
 
+    @ExceptionHandler(ForbiddenException.class)
+    public ResponseEntity<ResponseErrorDto> handleForbiddenExceptionException(ForbiddenException message) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(new ResponseErrorDto(HttpStatus.FORBIDDEN.value(), message.getMessage()));
+    }
+
 }

@@ -9,6 +9,14 @@ public class RepositoryInfo {
     private String name;
     private Owner owner;
 
+    public RepositoryInfo() {
+    }
+
+    public RepositoryInfo(String name, Owner owner) {
+        this.name = name;
+        this.owner = owner;
+    }
+
     // Getters and setters
     public String getName() {
         return name;

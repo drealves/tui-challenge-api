@@ -1,7 +1,6 @@
 package com.core.tuichallengeapi.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
 public class ResponseErrorDto {
 

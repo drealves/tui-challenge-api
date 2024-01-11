@@ -1,12 +1,15 @@
 com\core\tuichallengeapi\dto\ResponseErrorDto.class
 com\core\tuichallengeapi\TuiChallengeApiApplication.class
 com\core\tuichallengeapi\dto\RepositoryInfo.class
+com\core\tuichallengeapi\client\GitHubClient.class
 com\core\tuichallengeapi\config\WebClientConfig.class
 com\core\tuichallengeapi\dto\BranchInfo.class
 com\core\tuichallengeapi\exception\CustomExceptionHandler.class
 com\core\tuichallengeapi\config\GitHubApiPropertiesConfig.class
+com\core\tuichallengeapi\dto\CommitInfo.class
+com\core\tuichallengeapi\dto\Owner.class
 com\core\tuichallengeapi\exception\HttpAcceptException.class
-com\core\tuichallengeapi\dto\RepositoryInfo$Owner.class
+com\core\tuichallengeapi\exception\ForbiddenException.class
 com\core\tuichallengeapi\service\GitHubService.class
 com\core\tuichallengeapi\exception\UserNotFoundException.class
 com\core\tuichallengeapi\controller\GitHubController.class

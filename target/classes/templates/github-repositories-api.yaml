@@ -1,0 +1,88 @@
+openapi: 3.0.0
+info:
+  title: GitHub Repositories API
+  version: "1.0"
+servers:
+  - url: http://api.yourdomain.com/v1
+    description: Production server
+
+paths:
+  /repositories/{username}:
+    get:
+      summary: List User Repositories
+      description: Returns a list of repositories for a given user.
+      parameters:
+        - in: path
+          name: username
+          required: true
+          schema:
+            type: string
+          description: The username of the user
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+          description: Page number for pagination
+        - in: query
+          name: size
+          schema:
+            type: integer
+            default: 5
+          description: Number of items per page
+        - in: header
+          name: Accept
+          schema:
+            type: string
+          description: The response data format (JSON by default)
+      responses:
+        '200':
+          description: A list of repositories
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RepositoryInfo'
+        '400':
+          description: Invalid input or XML format not supported
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ResponseErrorDto'
+
+components:
+  schemas:
+    RepositoryInfo:
+      type: object
+      properties:
+        name:
+          type: string
+        owner:
+          $ref: '#/components/schemas/Owner'
+
+    Owner:
+      type: object
+      properties:
+        login:
+          type: string
+
+    BranchInfo:
+      type: object
+      properties:
+        name:
+          type: string
+
+    CommitInfo:
+      type: object
+      properties:
+        sha:
+          type: string
+
+    ResponseErrorDto:
+      type: object
+      properties:
+        status:
+          type: integer
+        message:
+          type: string

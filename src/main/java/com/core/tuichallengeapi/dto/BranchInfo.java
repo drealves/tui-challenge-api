@@ -6,6 +6,13 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 public class BranchInfo {
     private String name;
 
+    public BranchInfo(String name) {
+        this.name = name;
+    }
+
+    public BranchInfo() {
+    }
+
     // Getters and setters
     public String getName() {
         return name;
