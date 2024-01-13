@@ -1,4 +1,4 @@
-package com.core.tuichallengeapi.dto;
+package com.core.tuichallengeapi.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 

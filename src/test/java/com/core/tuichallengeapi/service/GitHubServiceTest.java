@@ -1,23 +1,20 @@
 package com.core.tuichallengeapi.service;
 
 import com.core.tuichallengeapi.client.GitHubClient;
-import com.core.tuichallengeapi.dto.BranchInfo;
-import com.core.tuichallengeapi.dto.Owner;
-import com.core.tuichallengeapi.dto.RepositoryInfo;
+import com.core.tuichallengeapi.exception.ForbiddenException;
 import com.core.tuichallengeapi.exception.UserNotFoundException;
+import com.core.tuichallengeapi.model.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-import org.mockito.junit.jupiter.MockitoExtension;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -28,76 +25,187 @@ public class GitHubServiceTest {
     @Mock
     private GitHubClient gitHubClient;
 
-    @InjectMocks
     private GitHubService gitHubService;
+
+    private Owner mockOwner;
+    private CommitInfo mockCommitInfo;
+    private BranchInfo mockBranchInfo;
+    private RepositoryInfo mockRepositoryInfo;
+    private RepositoriesResponseDto mockResponseDto;
+    private ResponseErrorDto mockErrorDto;
+
 
     @BeforeEach
     public void setUp() {
+
         MockitoAnnotations.openMocks(this);
+        gitHubService = new GitHubService(gitHubClient);
+
+        mockOwner = new Owner("username");
+
+        mockCommitInfo = new CommitInfo("000000000000000000");
+
+        mockBranchInfo = new BranchInfo("main", Arrays.asList(mockCommitInfo));
+
+        mockRepositoryInfo = new RepositoryInfo("repoName", mockOwner, false, Collections.singletonList(mockBranchInfo));
+
+        mockResponseDto = new RepositoriesResponseDto(Collections.singletonList(mockRepositoryInfo));
+
+        mockErrorDto = new ResponseErrorDto(404, "Not Found");
+
     }
 
     @Test
-    public void testGetBranchesForRepository() {
-        // Given
-        BranchInfo branchInfo = new BranchInfo("main"); // Populate with appropriate data
-
-        when(gitHubClient.getBranchesForRepository(anyString(), anyString()))
-                .thenReturn(Flux.just(branchInfo));
-
-        when(gitHubClient.getLastCommitSha(anyString(), anyString(), anyString()))
-                .thenReturn(Mono.just("commitSha123"));
-
-        // When & Then
-        StepVerifier.create(gitHubService.getBranchesForRepository("owner", "repo"))
-                .expectNextMatches(map -> map.get("branchName").equals("main") && map.get("lastCommitSha").equals("commitSha123"))
-                .verifyComplete();
-    }
-
-    @Test
-    public void testGetRepositoryInfo() {
-        // Given
-        RepositoryInfo repositoryInfo = new RepositoryInfo("repoName", new Owner("ownerLogin")); // Populate with appropriate data
+    public void testGetRepositoryInfoWithValidUserAndRepositories() {
+        // Mock GitHub client responses
         when(gitHubClient.getRepositories(anyString(), anyInt(), anyInt()))
-                .thenReturn(Flux.just(repositoryInfo));
-
-        BranchInfo branchInfo = new BranchInfo("main"); // Populate with appropriate data
+                .thenReturn(Flux.just(mockRepositoryInfo));
         when(gitHubClient.getBranchesForRepository(anyString(), anyString()))
-                .thenReturn(Flux.just(branchInfo));
-
+                .thenReturn(Flux.just(mockBranchInfo));
         when(gitHubClient.getLastCommitSha(anyString(), anyString(), anyString()))
-                .thenReturn(Mono.just("commitSha123"));
+                .thenReturn(Mono.just("000000000000000000")); // Match with mockCommitInfo SHA
 
-        // When & Then
-        StepVerifier.create(gitHubService.getRepositoryInfo("username", 1, 10))
+        // Call the method and verify the response
+        StepVerifier.create(gitHubService.getRepositoryInfo("validUser", 1, 10))
                 .expectNextMatches(list -> {
-                    Map<String, Object> repoMap = list.get(0);
-                    return repoMap.get("repositoryName").equals("repoName") &&
-                            repoMap.get("ownerLogin").equals("ownerLogin") &&
-                            ((List<?>) repoMap.get("branches")).size() == 1;
+                    // Perform your checks here
+                    // Example: Check if the list contains RepositoryInfo with the expected name
+                    return list.stream().anyMatch(repo -> "repoName".equals(repo.getName()));
                 })
                 .verifyComplete();
     }
 
+
     @Test
-    public void testGetBranchesForRepository_EmptyResult() {
-        // When the client returns an empty Flux
-        when(gitHubClient.getBranchesForRepository(anyString(), anyString()))
+    public void testGetRepositoryInfoWithValidUserNoRepositories() {
+        // Mock GitHub client to return an empty Flux
+        when(gitHubClient.getRepositories(anyString(), anyInt(), anyInt()))
                 .thenReturn(Flux.empty());
 
-        StepVerifier.create(gitHubService.getBranchesForRepository("owner", "repo"))
-                .verifyComplete(); // Verifies that the flux completes without any items
+        // Call the method and verify that it returns an empty list
+        StepVerifier.create(gitHubService.getRepositoryInfo("validUser", 1, 10))
+                .expectNextMatches(List::isEmpty)
+                .verifyComplete();
     }
 
     @Test
-    public void testGetRepositoryInfo_ErrorHandling() {
-        // When an error occurs while fetching repositories
+    public void testGetRepositoryInfoWithInvalidUser() {
+        // Mock GitHub client to return an empty Flux for an invalid user
+        when(gitHubClient.getRepositories(anyString(), anyInt(), anyInt()))
+                .thenReturn(Flux.empty());
+
+        // Call the method and verify that it returns an empty list
+        StepVerifier.create(gitHubService.getRepositoryInfo("invalidUser", 1, 10))
+                .expectNextMatches(List::isEmpty)
+                .verifyComplete();
+    }
+
+    @Test
+    public void testGetRepositoryInfoWithError() {
+        // Mock GitHub client to return an error
         when(gitHubClient.getRepositories(anyString(), anyInt(), anyInt()))
                 .thenReturn(Flux.error(new UserNotFoundException("User not found")));
 
-        StepVerifier.create(gitHubService.getRepositoryInfo("username", 1, 10))
-                .expectErrorMatches(throwable -> throwable instanceof UserNotFoundException)
+        // Call the method and expect an error
+        StepVerifier.create(gitHubService.getRepositoryInfo("user", 1, 10))
+                .expectErrorMatches(throwable -> throwable instanceof UserNotFoundException &&
+                        throwable.getMessage().equals("User not found"))
                 .verify();
     }
+
+    @Test
+    public void testFetchUserRepositoriesWithForksAndOriginalRepos() {
+        // Mock data with both forked and original repositories
+        RepositoryInfo forkedRepo = new RepositoryInfo("forkedRepo", mockOwner, true, Collections.emptyList());
+        RepositoryInfo originalRepo = new RepositoryInfo("originalRepo", mockOwner, false, Collections.emptyList());
+
+        when(gitHubClient.getRepositories("validUser", 1, 10))
+                .thenReturn(Flux.just(forkedRepo, originalRepo));
+
+        // Call the method and verify the response
+        StepVerifier.create(gitHubService.fetchUserRepositories("validUser", 1, 10))
+                .expectNextMatches(repo -> "originalRepo".equals(repo.getName()))
+                .verifyComplete();
+    }
+
+    @Test
+    public void testFetchUserRepositoriesWithOnlyForkedRepos() {
+        // Mock data with only forked repositories
+        RepositoryInfo forkedRepo1 = new RepositoryInfo("forkedRepo1", mockOwner, true, Collections.emptyList());
+        RepositoryInfo forkedRepo2 = new RepositoryInfo("forkedRepo2", mockOwner, true, Collections.emptyList());
+
+        when(gitHubClient.getRepositories("validUser", 1, 10))
+                .thenReturn(Flux.just(forkedRepo1, forkedRepo2));
+
+        // Call the method and verify that no repository is returned
+        StepVerifier.create(gitHubService.fetchUserRepositories("validUser", 1, 10))
+                .expectNextCount(0)
+                .verifyComplete();
+    }
+
+    @Test
+    public void testFetchUserRepositoriesWithError() {
+        // Mock GitHub client to return an error
+        when(gitHubClient.getRepositories("validUser", 1, 10))
+                .thenReturn(Flux.error(new ForbiddenException("Forbidden")));
+
+        // Call the method and expect an error
+        StepVerifier.create(gitHubService.fetchUserRepositories("validUser", 1, 10))
+                .expectErrorMatches(throwable -> throwable instanceof ForbiddenException &&
+                        "Forbidden".equals(throwable.getMessage()))
+                .verify();
+    }
+
+    @Test
+    public void testFetchBranchesForRepositoryWithMultipleBranches() {
+        // Setup mock repository info
+        RepositoryInfo mockRepository = new RepositoryInfo("repoName", new Owner("owner"), false, null);
+
+        // Mock GitHub client response for multiple branches
+        BranchInfo branch1 = new BranchInfo("branch1", null);
+        BranchInfo branch2 = new BranchInfo("branch2", null);
+        when(gitHubClient.getBranchesForRepository("owner", "repoName"))
+                .thenReturn(Flux.just(branch1, branch2));
+
+        // Call the method and verify the response
+        StepVerifier.create(gitHubService.fetchBranchesForRepository(mockRepository))
+                .expectNextMatches(repositoryInfo -> repositoryInfo.getBranches().size() == 2)
+                .verifyComplete();
+    }
+
+    @Test
+    public void testFetchBranchesForRepositoryWithNoBranches() {
+        // Setup mock repository info
+        RepositoryInfo mockRepository = new RepositoryInfo("repoName", new Owner("owner"), false, null);
+
+        // Mock GitHub client response for no branches
+        when(gitHubClient.getBranchesForRepository("owner", "repoName"))
+                .thenReturn(Flux.empty());
+
+        // Call the method and verify the response
+        StepVerifier.create(gitHubService.fetchBranchesForRepository(mockRepository))
+                .expectNextMatches(repositoryInfo -> repositoryInfo.getBranches().isEmpty())
+                .verifyComplete();
+    }
+
+    @Test
+    public void testFetchBranchesForRepositoryWithError() {
+        // Setup mock repository info
+        RepositoryInfo mockRepository = new RepositoryInfo("repoName", new Owner("owner"), false, null);
+
+        // Mock GitHub client to return an error
+        when(gitHubClient.getBranchesForRepository("owner", "repoName"))
+                .thenReturn(Flux.error(new RuntimeException("Error fetching branches")));
+
+        // Call the method and expect an error
+        StepVerifier.create(gitHubService.fetchBranchesForRepository(mockRepository))
+                .expectErrorMatches(throwable -> throwable instanceof RuntimeException &&
+                        "Error fetching branches".equals(throwable.getMessage()))
+                .verify();
+    }
+
+
+
 
 
 }

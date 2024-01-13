@@ -1,4 +1,4 @@
-package com.core.tuichallengeapi.dto;
+package com.core.tuichallengeapi.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
@@ -6,6 +6,12 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 public class CommitInfo {
     private String sha;
 
+    public CommitInfo() {
+    }
+
+    public CommitInfo(String sha) {
+        this.sha = sha;
+    }
     // Getters and setters
     public String getSha() {
         return sha;
