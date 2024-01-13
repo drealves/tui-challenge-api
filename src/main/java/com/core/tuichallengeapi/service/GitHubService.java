@@ -61,16 +61,17 @@ public class GitHubService {
                 .flatMap(branches -> fetchAndSetLastCommitForBranches(repositoryInfo, branches));
     }
 
+
     /**
      * Fetches the last commit SHA for each branch in a repository and updates the BranchInfo objects.
      *
      * @param repositoryInfo The repository information.
-     * @param branches The list of branches in the repository.
+     * @param branches       The list of branches in the repository.
      * @return A Mono of RepositoryInfo with updated branches.
      */
     public Mono<RepositoryInfo> fetchAndSetLastCommitForBranches(RepositoryInfo repositoryInfo, List<BranchInfo> branches) {
         if (branches.isEmpty()) {
-            repositoryInfo.setBranches(branches);
+            repositoryInfo.setBranches(Collections.emptyList());
             return Mono.just(repositoryInfo);
         }
 
@@ -87,20 +88,22 @@ public class GitHubService {
      * Fetches the last commit SHA for a specific branch and updates the BranchInfo object.
      *
      * @param repositoryInfo The repository information.
-     * @param branchInfo The branch information.
+     * @param branchInfo     The branch information.
      * @return A Mono of updated BranchInfo with the last commit SHA.
      */
     public Mono<BranchInfo> fetchLastCommitShaAndUpdateBranch(RepositoryInfo repositoryInfo, BranchInfo branchInfo) {
         return gitHubClient.getLastCommitSha(repositoryInfo.getOwner().getLogin(), repositoryInfo.getName(), branchInfo.getName())
+                .defaultIfEmpty("") // This ensures that an empty string is emitted if no commit SHA is found.
                 .map(commitSha -> {
-                    branchInfo.setCommits(Collections.singletonList(new CommitInfo(commitSha)));
+                    if (!commitSha.isEmpty()) {
+                        branchInfo.setCommits(Collections.singletonList(new CommitInfo(commitSha)));
+                    } else {
+                        // If commitSha is empty, we still include the branch with an empty commits list
+                        branchInfo.setCommits(Collections.emptyList());
+                    }
                     return branchInfo;
                 });
     }
-
-
-
-
 }
 
 

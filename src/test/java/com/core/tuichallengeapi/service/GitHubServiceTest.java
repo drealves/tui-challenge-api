@@ -16,6 +16,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
@@ -166,6 +168,8 @@ public class GitHubServiceTest {
         BranchInfo branch2 = new BranchInfo("branch2", null);
         when(gitHubClient.getBranchesForRepository("owner", "repoName"))
                 .thenReturn(Flux.just(branch1, branch2));
+        when(gitHubClient.getLastCommitSha(anyString(), anyString(), anyString()))
+                .thenReturn(Mono.just("000000000000000000"));
 
         // Call the method and verify the response
         StepVerifier.create(gitHubService.fetchBranchesForRepository(mockRepository))
@@ -206,6 +210,32 @@ public class GitHubServiceTest {
 
 
 
+    @Test
+    public void testFetchAndSetLastCommitForBranchesWithNoCommits() {
+        // Create test data
+        RepositoryInfo testRepo = new RepositoryInfo();
+        testRepo.setOwner(new Owner("drealves"));
+        testRepo.setName("SmartStart");
+        testRepo.setFork(false);
 
+        BranchInfo testBranch = new BranchInfo();
+        testBranch.setName("master");
+
+        // Mocking GitHubClient to return an empty Mono for getLastCommitSha
+        when(gitHubClient.getLastCommitSha(anyString(), anyString(), anyString())).thenReturn(Mono.empty());
+
+        // Call the method under test
+        Mono<RepositoryInfo> result = gitHubService.fetchAndSetLastCommitForBranches(testRepo, Collections.singletonList(testBranch));
+
+        // Verify the results
+        StepVerifier.create(result)
+                .assertNext(repositoryInfo -> {
+                    assertEquals(1, repositoryInfo.getBranches().size());
+                    BranchInfo branchInfo = repositoryInfo.getBranches().get(0);
+                    assertEquals("master", branchInfo.getName());
+                    assertTrue(branchInfo.getCommits().isEmpty());
+                })
+                .verifyComplete();
+    }
 
 }
