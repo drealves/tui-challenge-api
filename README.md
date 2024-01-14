@@ -74,3 +74,19 @@ Acknowledgments
     7 hours coding
     1 hour to comment
     Dev total: 16 Hours
+
+
+API doc 
+
+    http://localhost:8080/swagger-ui/index.html
+
+Jenkins Server 
+    Config File in Repository
+    
+    jenkinschalange.ddns.net:8080
+
+Docker
+     File in Repository
+    
+    ssh jenkinschalange.ddns.net
+    
