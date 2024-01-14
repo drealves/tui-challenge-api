@@ -80,10 +80,9 @@ API doc
 
     http://localhost:8080/swagger-ui/index.html
 
-Server 
-    Jenkis File in Repository
-    Docker File in Repository
-    fargate file and api-gateway file are not designed for evaluation
+Jenkis File in Repository
+Docker File in Repository
+Fargate file and api-gateway file are not designed for evaluation
     
     ec2-16-171-177-148.eu-north-1.compute.amazonaws.com:8080
 
