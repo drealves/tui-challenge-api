@@ -83,10 +83,10 @@ API doc
 Jenkins Server 
     Config File in Repository
     
-    jenkinschalange.ddns.net:8080
+    ec2-16-171-177-148.eu-north-1.compute.amazonaws.com:8080
 
-Docker
-     File in Repository
-    
-    ssh jenkinschalange.ddns.net
+Details:
+
+    I didn't create the environment in ECS using cloudFormation, but I configured two EC2 instances, one with Jenkis and the other as a docker container. If the services are not up when they evaluate it is possible that they are down, but in the interview I will demonstrate the devop Build that I created. See you soon Any doubts, please let us know
+
     
