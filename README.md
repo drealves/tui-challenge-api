@@ -83,10 +83,10 @@ API doc
 Jenkins Server 
     Config File in Repository
     
-    13.53.41.237:8080
+    jenkinschalange.ddns.net:8080
 
 Docker
-    Docker File in Repository
+     File in Repository
     
-    ssh 13.53.41.237
+    ssh jenkinschalange.ddns.net
     
