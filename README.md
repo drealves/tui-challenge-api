@@ -48,7 +48,7 @@ Example
 
 Fetching repository information for user drealves:
 ```bash
-http://localhost:8080/api/repositories/octocat?page=1&size=5
+    http://localhost:8080/api/v1/github/repositories/drealves?page=1&size=5
 ```
 Running the Tests
 ```bash
