@@ -95,8 +95,8 @@ Swegger:
     http://load-repo-api-225205433.eu-north-1.elb.amazonaws.com:8080/swagger-ui/index.html
 
 Example of request:
-
-    http://load-repo-api-225205433.eu-north-1.elb.amazonaws.com:8080/api/v1/github/repositories/drealves?page=1&size=5
+    
+    GET http://load-repo-api-225205433.eu-north-1.elb.amazonaws.com:8080/api/v1/github/repositories/drealves?page=1&size=5
 
 Details:
 I didn't create the environment in ECS using cloudFormation, but I configured two EC2 instances, one with Jenkis and the other as a docker container. If the services are not up when they evaluate it is possible that they are down, but in the interview I will demonstrate the devop Build that I created. See you soon Any doubts, please let us know
