@@ -64,6 +64,9 @@ class GitHubServiceTest {
                 .expectErrorMatches(throwable -> throwable instanceof UserNotFoundException &&
                         throwable.getMessage().equals("User not found"))
                 .verify();
+
+        // Verify that gitHubClient.getRepositories method was called with the correct arguments
+        verify(gitHubClient).getRepositories("user", 1, 10);
     }
 
     @Test
@@ -79,6 +82,9 @@ class GitHubServiceTest {
         StepVerifier.create(gitHubService.fetchUserRepositories("validUser", 1, 10, false))
                 .expectNextCount(0)
                 .verifyComplete();
+
+        // Verify that gitHubClient.getRepositories method was called with the correct arguments
+        verify(gitHubClient).getRepositories("validUser", 1, 10);
     }
 
     @Test
@@ -92,7 +98,11 @@ class GitHubServiceTest {
                 .expectErrorMatches(throwable -> throwable instanceof ForbiddenException &&
                         "Forbidden".equals(throwable.getMessage()))
                 .verify();
+
+        // Verify that gitHubClient.getRepositories method was called with the correct arguments
+        verify(gitHubClient).getRepositories("validUser", 1, 10);
     }
+
 
     @Test
     public void testFetchBranchesForRepositoryWithMultipleBranches() {
@@ -111,6 +121,10 @@ class GitHubServiceTest {
         StepVerifier.create(gitHubService.fetchBranchesForRepository(mockRepository))
                 .expectNextMatches(repositoryInfo -> repositoryInfo.getBranches().size() == 2)
                 .verifyComplete();
+
+        // Verify that gitHubClient.getBranchesForRepository and gitHubClient.getLastCommitSha methods were called
+        verify(gitHubClient).getBranchesForRepository("owner", "repoName");
+        verify(gitHubClient, times(2)).getLastCommitSha(anyString(), anyString(), anyString());
     }
 
     @Test
@@ -126,6 +140,9 @@ class GitHubServiceTest {
         StepVerifier.create(gitHubService.fetchBranchesForRepository(mockRepository))
                 .expectNextMatches(repositoryInfo -> repositoryInfo.getBranches().isEmpty())
                 .verifyComplete();
+
+        // Verify that gitHubClient.getBranchesForRepository method was called with the correct arguments
+        verify(gitHubClient).getBranchesForRepository("owner", "repoName");
     }
 
     @Test
@@ -142,6 +159,9 @@ class GitHubServiceTest {
                 .expectErrorMatches(throwable -> throwable instanceof RuntimeException &&
                         "Error fetching branches".equals(throwable.getMessage()))
                 .verify();
+
+        // Verify that gitHubClient.getBranchesForRepository method was called with the correct arguments
+        verify(gitHubClient).getBranchesForRepository("owner", "repoName");
     }
 
 }
