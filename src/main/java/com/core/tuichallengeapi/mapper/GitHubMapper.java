@@ -4,6 +4,7 @@ import com.core.tuichallengeapi.model.BranchInfo;
 import com.core.tuichallengeapi.model.CommitInfo;
 import com.core.tuichallengeapi.model.RepositoryInfo;
 import com.core.tuichallengeapi.model.dto.BranchInfoDto;
+import com.core.tuichallengeapi.model.dto.OwnerDto;
 import com.core.tuichallengeapi.model.dto.RepositoryInfoDto;
 
 import java.util.stream.Collectors;
@@ -14,7 +15,7 @@ public class GitHubMapper {
         RepositoryInfoDto dto = new RepositoryInfoDto();
         dto.setName(repositoryInfo.getName());
         dto.setFork(repositoryInfo.isFork());
-        dto.setOwner(repositoryInfo.getOwner()); // Assuming Owner info is part of RepositoryInfo
+        dto.setOwner(new OwnerDto(repositoryInfo.getOwner().getLogin())); // Assuming Owner info is part of RepositoryInfo
         dto.setBranches(repositoryInfo.getBranches().stream()
                 .map(GitHubMapper::toBranchDto)
                 .collect(Collectors.toList()));

@@ -8,7 +8,7 @@ import java.util.List;
 public class RepositoryInfoDto {
 
     private String name;
-    private Owner owner;
+    private OwnerDto owner;
     private boolean fork;
     private List<BranchInfoDto> branches; // Add this field
 
@@ -16,7 +16,7 @@ public class RepositoryInfoDto {
     public RepositoryInfoDto() {
     }
 
-    public RepositoryInfoDto(String name, Owner owner, boolean fork, List<BranchInfoDto> branches) {
+    public RepositoryInfoDto(String name, OwnerDto owner, boolean fork, List<BranchInfoDto> branches) {
         this.name = name;
         this.owner = owner;
         this.fork = fork;
@@ -32,11 +32,11 @@ public class RepositoryInfoDto {
         this.name = name;
     }
 
-    public Owner getOwner() {
+    public OwnerDto getOwner() {
         return owner;
     }
 
-    public void setOwner(Owner owner) {
+    public void setOwner(OwnerDto owner) {
         this.owner = owner;
     }
 
