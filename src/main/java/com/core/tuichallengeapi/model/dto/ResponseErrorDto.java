@@ -1,4 +1,4 @@
-package com.core.tuichallengeapi.model;
+package com.core.tuichallengeapi.model.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 

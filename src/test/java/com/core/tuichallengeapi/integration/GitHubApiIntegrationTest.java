@@ -1,102 +1,82 @@
 package com.core.tuichallengeapi.integration;
 
-import com.core.tuichallengeapi.client.GitHubClient;
-import com.core.tuichallengeapi.exception.UserNotFoundException;
-import com.core.tuichallengeapi.model.BranchInfo;
-import com.core.tuichallengeapi.model.CommitInfo;
-import com.core.tuichallengeapi.model.Owner;
-import com.core.tuichallengeapi.model.RepositoryInfo;
+
+import com.core.tuichallengeapi.controller.GitHubController;
+import com.core.tuichallengeapi.model.dto.PaginatedRepositoriesResponseDto;
+import com.core.tuichallengeapi.model.dto.RepositoryInfoDto;
+import com.core.tuichallengeapi.service.GitHubService;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.mockserver.client.MockServerClient;
+import org.mockserver.integration.ClientAndServer;
+import org.mockserver.log.model.LogEntry;
+import org.mockserver.matchers.Times;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.reactive.server.WebTestClient;
-import reactor.core.publisher.Flux;
+import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.core.publisher.Mono;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Collections;
 
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.BDDMockito.given;
+import static org.mockserver.model.HttpRequest.request;
+import static org.mockserver.model.HttpResponse.response;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-class GitHubIntegrationTest {
+@WebFluxTest(GitHubController.class)
+public class GitHubApiIntegrationTest {
 
     @Autowired
     private WebTestClient webTestClient;
 
-    @MockBean
-    private GitHubClient gitHubClient;
+    private static ClientAndServer mockServer;
+
+    @Mock
+    private GitHubService gitHubService;
+
+
+    @BeforeAll
+    public static void setUpMockServer() {
+        mockServer = ClientAndServer.startClientAndServer(1080); // Start the mock server on port 1080
+
+        // Define mock responses
+        new MockServerClient("localhost", 1080)
+                .when(request()
+                                .withPath("/api/v1/github/users/testUser/repositories?page=1&size=5&includeForks=false")
+                                .withMethod("GET")
+                                .withHeader("Accept", "application/json"),
+                        Times.once())
+                .respond(response()
+                        .withStatusCode(200)
+                        .withHeader("Content-Type", "application/json")
+                        .withBody("{\"currentPage\": 1, \"pageSize\": 5, \"totalElements\": 10, \"totalPages\": 2, \"repositories\": []}"));
+
+    }
+
+    @AfterAll
+    public static void stopMockServer() {
+        mockServer.stop(); // Stop the mock server after tests are done
+    }
 
     @Test
-    public void testAcceptApplicationXml() {
-        webTestClient.get().uri("/api/v1/github/repositories/mockUser")
-                .header("Accept", "application/xml")
+    public void testListUserRepositories() {
+        // Perform a GET request to the endpoint with the mock server
+        webTestClient.get()
+                .uri("/api/v1/github/users/{username}/repositories?page={page}&size={size}&includeForks={includeForks}", "testUser", 1, 5, false)
+                .header("Accept", MediaType.APPLICATION_JSON_VALUE)
                 .exchange()
-                .expectStatus().isEqualTo(406)
+                .expectStatus().isOk()
+                .expectHeader().contentType(MediaType.APPLICATION_JSON)
                 .expectBody()
-                .jsonPath("$.status").isEqualTo(406)
-                .jsonPath("$.message").isEqualTo("XML format not supported");
+                .jsonPath("$.currentPage").isEqualTo(1)
+                .jsonPath("$.pageSize").isEqualTo(5)
+                .jsonPath("$.totalElements").isEqualTo(0)
+                .jsonPath("$.totalPages").isEqualTo(0);
     }
 
-    @Test
-    public void testAcceptApplicationUserNotFound() {
-
-        given(gitHubClient.getRepositories("mockUser", 1, 5))
-                .willThrow(new UserNotFoundException("User not found"));
-
-        webTestClient.get().uri("/api/v1/github/repositories/mockUser")
-                .header("Accept", "application/Json")
-                .exchange()
-                .expectStatus().isEqualTo(404)
-                .expectBody()
-                .jsonPath("$.status").isEqualTo(404)
-                .jsonPath("$.message").isEqualTo("User not found");
-    }
-
-
-    @Test
-    public void testGetRepositoriesForMockUser() {
-        // Mock data for repositories
-        List<RepositoryInfo> mockRepositories = new ArrayList<>();
-        for (int i = 0; i < 5; i++) {
-            RepositoryInfo repo = new RepositoryInfo();
-            repo.setName("MockRepo" + i);
-            repo.setOwner(new Owner("mockUser"));
-            repo.setFork(false);
-            mockRepositories.add(repo);
-        }
-
-        // Mock data for branches
-        List<BranchInfo> mockBranches = new ArrayList<>();
-        for (int i = 0; i < 3; i++) {
-            BranchInfo branch = new BranchInfo();
-            branch.setName("master" + i);
-            List<CommitInfo> commits = new ArrayList<>();
-            commits.add(new CommitInfo("commitSha" + i)); // Adjust according to your CommitInfo class structure
-            branch.setCommits(commits);
-            // Add more fields as needed
-
-            mockBranches.add(branch);
-
-            // Mock the GitHubClient calls
-            given(gitHubClient.getRepositories("mockUser", 1, 5)).willReturn(Flux.fromIterable(mockRepositories));
-            given(gitHubClient.getBranchesForRepository(anyString(), anyString())).willReturn(Flux.fromIterable(mockBranches));
-            given(gitHubClient.getLastCommitSha(anyString(), anyString(), anyString())).willReturn(Mono.just("commitSha"));
-
-            // Perform the test
-            webTestClient.get()
-                    .uri("/api/v1/github/repositories/mockUser")
-                    .accept(MediaType.APPLICATION_JSON)
-                    .exchange()
-                    .expectStatus().isOk()
-                    .expectHeader().contentType(MediaType.APPLICATION_JSON)
-                    .expectBody()
-                    .jsonPath("$.repositories[0].name").isEqualTo("MockRepo0");
-            // Add more assertions as needed
-        }
-
-    }
 }
+

@@ -6,7 +6,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 @SpringBootTest
 class TuiChallengeApiApplicationTests {
 
-    //@Test
+    @Test
     void contextLoads() {
     }
 

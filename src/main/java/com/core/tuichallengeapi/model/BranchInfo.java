@@ -7,11 +7,11 @@ import java.util.List;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class BranchInfo {
     private String name;
-    private List<CommitInfo> commits;
+    private List<CommitInfo> commit;
 
     public BranchInfo(String name, List<CommitInfo> commits) {
         this.name = name;
-        this.commits = commits;
+        this.commit = commits;
     }
 
     public BranchInfo() {
@@ -27,10 +27,10 @@ public class BranchInfo {
     }
 
     public List<CommitInfo> getCommits() {
-        return commits;
+        return commit;
     }
 
     public void setCommits(List<CommitInfo> commits) {
-        this.commits = commits;
+        this.commit = commits;
     }
 }

@@ -1,15 +1,20 @@
 package com.core.tuichallengeapi.service;
 
 import com.core.tuichallengeapi.client.GitHubClient;
+import com.core.tuichallengeapi.mapper.GitHubMapper;
 import com.core.tuichallengeapi.model.BranchInfo;
 import com.core.tuichallengeapi.model.CommitInfo;
+import com.core.tuichallengeapi.model.dto.PaginatedRepositoriesResponseDto;
 import com.core.tuichallengeapi.model.RepositoryInfo;
+import com.core.tuichallengeapi.model.dto.RepositoryInfoDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class GitHubService {
@@ -24,18 +29,30 @@ public class GitHubService {
 
     /**
      * Retrieves a list of repository information for a specific GitHub user.
-     *
+     *+
      * @param username The GitHub username.
      * @param page The page number for pagination.
      * @param size The number of repositories per page.
      * @return A Mono wrapping a list of RepositoryInfo objects.
      */
-    public Mono<List<RepositoryInfo>> getRepositoryInfo(String username, int page, int size) {
-        return fetchUserRepositories(username, page, size)
-                .flatMap(this::fetchBranchesForRepository)
-                .collectList();
-    }
+    public Mono<PaginatedRepositoriesResponseDto> getRepositoryInfo(String username, int page, int size, boolean includeForks) {
+        return fetchUserRepositories(username, page, size, includeForks)
+                .collectList()
+                .map(repositories -> {
+                    // Convert to DTOs
+                    List<RepositoryInfoDto> repoListDto = repositories.stream()
+                            .map(GitHubMapper::toRepositoryInfoDto)
+                            .collect(Collectors.toList());
 
+                    long totalElements = repoListDto.size();
+                    int totalPages = (int) Math.ceil((double) totalElements / size);
+                    int startIndex = (page - 1) * size;
+                    int endIndex = Math.min(startIndex + size, repoListDto.size());
+
+                    List<RepositoryInfoDto> paginatedList = repoListDto.subList(startIndex, endIndex);
+                    return new PaginatedRepositoriesResponseDto(paginatedList, page, size, totalElements, totalPages);
+                });
+    }
     /**
      * Fetches repository information for a given user from GitHub.
      *
@@ -44,9 +61,10 @@ public class GitHubService {
      * @param size The number of repositories per page.
      * @return A Flux of RepositoryInfo objects.
      */
-    public Flux<RepositoryInfo> fetchUserRepositories(String username, int page, int size) {
+    public Flux<RepositoryInfo> fetchUserRepositories(String username, int page, int size, boolean includeForks) {
         return gitHubClient.getRepositories(username, page, size)
-                .filter(repositoryInfo -> !repositoryInfo.isFork()); // Filter out forked repositories
+                .filter(repositoryInfo -> includeForks || !repositoryInfo.isFork())
+                .flatMap(this::fetchBranchesForRepository);
     }
 
     /**
@@ -57,29 +75,16 @@ public class GitHubService {
      */
     public Mono<RepositoryInfo> fetchBranchesForRepository(RepositoryInfo repositoryInfo) {
         return gitHubClient.getBranchesForRepository(repositoryInfo.getOwner().getLogin(), repositoryInfo.getName())
+                .flatMap(branchInfo -> {
+                    if (branchInfo.getCommits() == null) {
+                        // Conditional call to fetch last commit SHA
+                        return fetchLastCommitShaAndUpdateBranch(repositoryInfo, branchInfo);
+                    }
+                    return Mono.just(branchInfo);
+                })
                 .collectList()
-                .flatMap(branches -> fetchAndSetLastCommitForBranches(repositoryInfo, branches));
-    }
-
-
-    /**
-     * Fetches the last commit SHA for each branch in a repository and updates the BranchInfo objects.
-     *
-     * @param repositoryInfo The repository information.
-     * @param branches       The list of branches in the repository.
-     * @return A Mono of RepositoryInfo with updated branches.
-     */
-    public Mono<RepositoryInfo> fetchAndSetLastCommitForBranches(RepositoryInfo repositoryInfo, List<BranchInfo> branches) {
-        if (branches.isEmpty()) {
-            repositoryInfo.setBranches(Collections.emptyList());
-            return Mono.just(repositoryInfo);
-        }
-
-        return Flux.fromIterable(branches)
-                .flatMap(branchInfo -> fetchLastCommitShaAndUpdateBranch(repositoryInfo, branchInfo))
-                .collectList()
-                .map(updatedBranches -> {
-                    repositoryInfo.setBranches(updatedBranches);
+                .map(branches -> {
+                    repositoryInfo.setBranches(branches);
                     return repositoryInfo;
                 });
     }
@@ -104,6 +109,7 @@ public class GitHubService {
                     return branchInfo;
                 });
     }
+
 }
 
 

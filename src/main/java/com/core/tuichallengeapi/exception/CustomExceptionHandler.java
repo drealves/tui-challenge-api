@@ -1,6 +1,6 @@
 package com.core.tuichallengeapi.exception;
 
-import com.core.tuichallengeapi.model.ResponseErrorDto;
+import com.core.tuichallengeapi.model.dto.ResponseErrorDto;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -36,6 +36,19 @@ public class CustomExceptionHandler {
     @ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<ResponseErrorDto> handleExceptionUserNotFoundException(UserNotFoundException message) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(new ResponseErrorDto(HttpStatus.NOT_FOUND.value(), message.getMessage()));
+    }
+
+    /**
+     * Handles IllegalArgumentException which occurs when a requested user is not found.
+     *
+     * @param message The caught IllegalArgumentException.
+     * @return A ResponseEntity with a custom error message and a 404 Not Found status.
+     */
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ResponseErrorDto> handleExceptionArgumentException(IllegalArgumentException message) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .contentType(MediaType.APPLICATION_JSON)
                 .body(new ResponseErrorDto(HttpStatus.NOT_FOUND.value(), message.getMessage()));
     }

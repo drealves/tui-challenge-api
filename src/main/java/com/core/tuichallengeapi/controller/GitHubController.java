@@ -1,8 +1,9 @@
 package com.core.tuichallengeapi.controller;
 
-import com.core.tuichallengeapi.exception.HttpAcceptException;
-import com.core.tuichallengeapi.model.RepositoriesResponseDto;
+import com.core.tuichallengeapi.exception.IllegalArgumentException;
+import com.core.tuichallengeapi.model.dto.PaginatedRepositoriesResponseDto;
 import com.core.tuichallengeapi.service.GitHubService;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
@@ -35,19 +36,23 @@ public class GitHubController {
      * @param acceptHeader The HTTP 'Accept' header to determine the response format.
      * @return A Mono wrapping a ResponseEntity containing RepositoriesResponseDto.
      */
-    @GetMapping("/repositories/{username}")
-    public Mono<ResponseEntity<RepositoriesResponseDto>> listUserRepositories(
+    @GetMapping(path = "/users/{username}/repositories", produces = MediaType.APPLICATION_JSON_VALUE)
+    public Mono<ResponseEntity<PaginatedRepositoriesResponseDto>> listUserRepositories(
             @PathVariable String username,
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "5") int size,
-            @RequestHeader("Accept") String acceptHeader) {
+            @RequestHeader("Accept") String acceptHeader,
+            @RequestParam(defaultValue = "false") boolean includeForks) {
 
-        // Check if the request header specifies XML; if so, return an error as XML is not supported
-        if (acceptHeader.equals("application/xml")) {
-            return Mono.error(new HttpAcceptException("XML format not supported"));
+        // Validate pagination parameters
+        if (size > 100 || size < 1) {
+            return Mono.error(new IllegalArgumentException("Page size must be between 1 and 100"));
         }
-        // Call the service to get repository information and wrap it in a ResponseEntity
-        return gitHubService.getRepositoryInfo(username, page, size)
-                .map(repos -> ResponseEntity.ok().body(new RepositoriesResponseDto(repos)));
+        if (page < 1) {
+            return Mono.error(new IllegalArgumentException("Page number must be greater than 0"));
+        }
+
+        return gitHubService.getRepositoryInfo(username, page, size, includeForks)
+                .map(response -> ResponseEntity.ok().body(response));
     }
 }
