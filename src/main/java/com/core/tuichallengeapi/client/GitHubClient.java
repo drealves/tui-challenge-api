@@ -38,6 +38,7 @@ public class GitHubClient {
      * Retrieves a list of repositories for a given GitHub username.
      *
      * @param username The GitHub username.
+     * @param page The page number for pagination.
      * @return A Flux of RepositoryInfo objects.
      */
     public Flux<RepositoryInfo> getRepositories(String username, int page) {

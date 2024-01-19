@@ -2,6 +2,7 @@ package com.core.tuichallengeapi.service;
 
 import com.core.tuichallengeapi.client.GitHubClient;
 import com.core.tuichallengeapi.mapper.GitHubMapper;
+import com.core.tuichallengeapi.mapper.PaginatedRepositoriesResponseMapper;
 import com.core.tuichallengeapi.model.BranchInfo;
 import com.core.tuichallengeapi.model.CommitInfo;
 import com.core.tuichallengeapi.model.dto.PaginatedRepositoriesResponseDto;
@@ -39,33 +40,17 @@ public class GitHubService {
         return fetchUserRepositories(username, page, includeForks)
                 .collectList()
                 .map(repositories -> {
-                    // Convert to DTOs
                     List<RepositoryInfoDto> repoListDto = repositories.stream()
                             .map(GitHubMapper::toRepositoryInfoDto)
                             .collect(Collectors.toList());
-
-                    // Correct the totalElements and totalPages calculations
-                    long totalElements = repoListDto.size();
-                    int totalPages = (int) Math.ceil((double) totalElements / size);
-
-                    // Correct the pagination logic
-                    int startIndex = (page - 1) * size;
-                    int endIndex = Math.min(startIndex + size, repoListDto.size());
-
-                    // Handling the case where startIndex is greater than the size of the list
-                    if (startIndex >= repoListDto.size()) {
-                        startIndex = Math.max(repoListDto.size() - 1, 0);
-                        endIndex = startIndex;
-                    }
-
-                    List<RepositoryInfoDto> paginatedList = repoListDto.subList(startIndex, endIndex);
-                    return new PaginatedRepositoriesResponseDto(paginatedList, page, size, totalElements, totalPages);
+                    return  PaginatedRepositoriesResponseMapper.toRepositoryInfoDto(repoListDto, page, size);
                 });
     }
     /**
      * Fetches repository information for a given user from GitHub.
      *
      * @param username The GitHub username.
+     * @param page The page number for pagination.
      * @return A Flux of RepositoryInfo objects.
      */
     public Flux<RepositoryInfo> fetchUserRepositories(String username, int page, boolean includeForks) {
