@@ -36,7 +36,7 @@ public class GitHubService {
      * @return A Mono wrapping a list of RepositoryInfo objects.
      */
     public Mono<PaginatedRepositoriesResponseDto> getRepositoryInfo(String username, int page, int size, boolean includeForks) {
-        return fetchUserRepositories(username, page, size, includeForks)
+        return fetchUserRepositories(username, page, includeForks)
                 .collectList()
                 .map(repositories -> {
                     // Convert to DTOs
@@ -44,10 +44,19 @@ public class GitHubService {
                             .map(GitHubMapper::toRepositoryInfoDto)
                             .collect(Collectors.toList());
 
+                    // Correct the totalElements and totalPages calculations
                     long totalElements = repoListDto.size();
                     int totalPages = (int) Math.ceil((double) totalElements / size);
+
+                    // Correct the pagination logic
                     int startIndex = (page - 1) * size;
                     int endIndex = Math.min(startIndex + size, repoListDto.size());
+
+                    // Handling the case where startIndex is greater than the size of the list
+                    if (startIndex >= repoListDto.size()) {
+                        startIndex = Math.max(repoListDto.size() - 1, 0);
+                        endIndex = startIndex;
+                    }
 
                     List<RepositoryInfoDto> paginatedList = repoListDto.subList(startIndex, endIndex);
                     return new PaginatedRepositoriesResponseDto(paginatedList, page, size, totalElements, totalPages);
@@ -57,12 +66,10 @@ public class GitHubService {
      * Fetches repository information for a given user from GitHub.
      *
      * @param username The GitHub username.
-     * @param page The page number for pagination.
-     * @param size The number of repositories per page.
      * @return A Flux of RepositoryInfo objects.
      */
-    public Flux<RepositoryInfo> fetchUserRepositories(String username, int page, int size, boolean includeForks) {
-        return gitHubClient.getRepositories(username, page, size)
+    public Flux<RepositoryInfo> fetchUserRepositories(String username, int page, boolean includeForks) {
+        return gitHubClient.getRepositories(username, page)
                 .filter(repositoryInfo -> includeForks || !repositoryInfo.isFork())
                 .flatMap(this::fetchBranchesForRepository);
     }

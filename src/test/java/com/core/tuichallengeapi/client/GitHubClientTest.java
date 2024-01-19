@@ -64,10 +64,10 @@ public class GitHubClientTest {
         when(requestHeadersUriSpec.uri(anyString())).thenReturn(requestHeadersSpec);
         when(requestHeadersSpec.retrieve()).thenReturn(responseSpec);
         when(responseSpec.bodyToFlux(RepositoryInfo.class)).thenReturn(Flux.just(repo1, repo2));
-        when(gitHubClient.getRepositories(anyString(), anyInt(), anyInt())).thenReturn(Flux.just(repo1, repo2));
+        when(gitHubClient.getRepositories(anyString(), anyInt())).thenReturn(Flux.just(repo1, repo2));
 
         // Act
-        Flux<RepositoryInfo> result = gitHubClient.getRepositories(username, 1, 5);
+        Flux<RepositoryInfo> result = gitHubClient.getRepositories(username, 1);
 
         // Assert
         assertThat(result.collectList().block()).containsExactly(repo1, repo2);
@@ -88,10 +88,10 @@ public class GitHubClientTest {
                 .thenReturn(responseSpec);
         when(responseSpec.bodyToFlux(RepositoryInfo.class))
                 .thenReturn(Flux.error(new UserNotFoundException("User not found")));
-        when(gitHubClient.getRepositories(anyString(), anyInt(), anyInt()))
+        when(gitHubClient.getRepositories(anyString(), anyInt()))
                 .thenReturn(Flux.error(new UserNotFoundException("User not found")));
 
-        Flux<RepositoryInfo> result = gitHubClient.getRepositories(username, 1, 5);
+        Flux<RepositoryInfo> result = gitHubClient.getRepositories(username, 1);
 
         // Act & Assert with StepVerifier
         StepVerifier.create(result)
@@ -109,10 +109,10 @@ public class GitHubClientTest {
         when(requestHeadersSpec.retrieve()).thenReturn(responseSpec);
         when(responseSpec.bodyToFlux(RepositoryInfo.class))
                 .thenReturn(Flux.error(new ForbiddenException("User not found")));
-        when(gitHubClient.getRepositories(anyString(), anyInt(), anyInt()))
+        when(gitHubClient.getRepositories(anyString(), anyInt()))
                 .thenReturn(Flux.error(new ForbiddenException("User not found")));
 
-        StepVerifier.create(gitHubClient.getRepositories(username, 1, 5))
+        StepVerifier.create(gitHubClient.getRepositories(username, 1))
                 .expectError(ForbiddenException.class)
                 .verify();
     }

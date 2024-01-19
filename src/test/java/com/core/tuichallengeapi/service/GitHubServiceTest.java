@@ -56,7 +56,7 @@ class GitHubServiceTest {
     @Test
     public void testGetRepositoryInfoWithError() {
         // Mock GitHub client to return an error
-        when(gitHubClient.getRepositories(anyString(), anyInt(), anyInt()))
+        when(gitHubClient.getRepositories(anyString(),anyInt()))
                 .thenReturn(Flux.error(new UserNotFoundException("User not found")));
 
         // Call the method and expect an error
@@ -66,7 +66,7 @@ class GitHubServiceTest {
                 .verify();
 
         // Verify that gitHubClient.getRepositories method was called with the correct arguments
-        verify(gitHubClient).getRepositories("user", 1, 10);
+        verify(gitHubClient).getRepositories("user", 1);
     }
 
     @Test
@@ -75,32 +75,32 @@ class GitHubServiceTest {
         RepositoryInfo forkedRepo1 = new RepositoryInfo("forkedRepo1", new Owner("lala"), true, Collections.emptyList());
         RepositoryInfo forkedRepo2 = new RepositoryInfo("forkedRepo2", new Owner("lala1"), true, Collections.emptyList());
 
-        when(gitHubClient.getRepositories("validUser", 1, 10))
+        when(gitHubClient.getRepositories("validUser", 1))
                 .thenReturn(Flux.just(forkedRepo1, forkedRepo2));
 
         // Call the method and verify that no repository is returned
-        StepVerifier.create(gitHubService.fetchUserRepositories("validUser", 1, 10, false))
+        StepVerifier.create(gitHubService.fetchUserRepositories("validUser", 1, false))
                 .expectNextCount(0)
                 .verifyComplete();
 
         // Verify that gitHubClient.getRepositories method was called with the correct arguments
-        verify(gitHubClient).getRepositories("validUser", 1, 10);
+        verify(gitHubClient).getRepositories("validUser", 1);
     }
 
     @Test
     public void testFetchUserRepositoriesWithError() {
         // Mock GitHub client to return an error
-        when(gitHubClient.getRepositories("validUser", 1, 10))
+        when(gitHubClient.getRepositories("validUser", 1))
                 .thenReturn(Flux.error(new ForbiddenException("Forbidden")));
 
         // Call the method and expect an error
-        StepVerifier.create(gitHubService.fetchUserRepositories("validUser", 1, 10, false))
+        StepVerifier.create(gitHubService.fetchUserRepositories("validUser", 1, false))
                 .expectErrorMatches(throwable -> throwable instanceof ForbiddenException &&
                         "Forbidden".equals(throwable.getMessage()))
                 .verify();
 
         // Verify that gitHubClient.getRepositories method was called with the correct arguments
-        verify(gitHubClient).getRepositories("validUser", 1, 10);
+        verify(gitHubClient).getRepositories("validUser", 1);
     }
 
 

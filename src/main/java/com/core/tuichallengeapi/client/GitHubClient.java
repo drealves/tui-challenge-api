@@ -38,16 +38,14 @@ public class GitHubClient {
      * Retrieves a list of repositories for a given GitHub username.
      *
      * @param username The GitHub username.
-     * @param page Page number for pagination.
-     * @param size Number of repositories per page.
      * @return A Flux of RepositoryInfo objects.
      */
-    public Flux<RepositoryInfo> getRepositories(String username, int page, int size) {
+    public Flux<RepositoryInfo> getRepositories(String username, int page) {
         return webClient.get()
                 .uri(uriBuilder -> uriBuilder
                         .path("/users/{username}/repos")
                         .queryParam("page", page)
-                        .queryParam("per_page", size)
+                        .queryParam("per_page", 100)
                         .build(username))
                 .retrieve()
                 .onStatus(httpStatus -> httpStatus.equals(HttpStatus.NOT_FOUND),
